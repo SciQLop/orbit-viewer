@@ -25,7 +25,7 @@ def test_get_orbit_mms1_1_hours_sanity_check(qtbot):
     s.done.connect(__done)
     s.error.connect(__error)
 
-    with qtbot.waitSignal(s.done, timeout=5000):
+    with qtbot.waitSignal(s.done, timeout=10000):
         r = (dt.datetime.now() - dt.timedelta(hours=1), dt.datetime.now())
         s.get_orbit(r[0], r[1])
 
