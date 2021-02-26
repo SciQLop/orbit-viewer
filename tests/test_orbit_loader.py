@@ -10,14 +10,19 @@ import spwc
 def test_get_orbit_mms1_1_hours_sanity_check(qtbot):
     s = OrbitLoader('mms1')
 
-    def __slot(var: spwc.SpwcVariable):
-        assert len(var.time) == 60
-        assert var.data.shape == (60, 6)
+    var = None
+    error_count = 0
+
+    def __done(v: spwc.SpwcVariable):
+        nonlocal var
+        assert var is None
+        var = v
 
     def __error():
-        assert 0
+        nonlocal error_count
+        error_count += 1
 
-    s.done.connect(__slot)
+    s.done.connect(__done)
     s.error.connect(__error)
 
     with qtbot.waitSignal(s.done, timeout=5000):
@@ -26,6 +31,11 @@ def test_get_orbit_mms1_1_hours_sanity_check(qtbot):
 
     with qtbot.waitSignal(s.finished):
         s.quit()
+
+    assert var is not None
+    assert len(var.time) == 60
+    assert var.data.shape == (60, 6)
+    assert error_count == 0
 
 
 def test_error_unknown_product(qtbot):
@@ -42,13 +52,18 @@ def test_error_unknown_product(qtbot):
 def test_invalid_time_range_empty_orbit(qtbot):
     s = OrbitLoader('mms1')
 
-    def __slot(var: spwc.SpwcVariable):
-        assert len(var.time) == 0
+    var = None
+    error_count = 0
+
+    def __done(v: spwc.SpwcVariable):
+        nonlocal var
+        var = v
 
     def __error():
-        assert 0
+        nonlocal error_count
+        error_count += 1
 
-    s.done.connect(__slot)
+    s.done.connect(__done)
     s.error.connect(__error)
 
     with qtbot.waitSignal(s.done, timeout=5000):
@@ -57,3 +72,7 @@ def test_invalid_time_range_empty_orbit(qtbot):
 
     with qtbot.waitSignal(s.finished):
         s.quit()
+
+    assert var is not None
+    assert len(var.time) == 0
+    assert error_count == 0
